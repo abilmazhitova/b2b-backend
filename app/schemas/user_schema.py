@@ -16,6 +16,7 @@ class UserRead(BaseModel):
     email: str
     full_name: str | None
     is_admin: bool
+    is_active: bool = True
 
 
 class LoginResponse(BaseModel):
@@ -26,3 +27,7 @@ class LoginResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class UserUpdateAdmin(BaseModel):
+    is_admin: bool

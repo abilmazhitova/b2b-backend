@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth
+from app.api import users
 from app.api import telecom
 
 app = FastAPI(title="Coworking Analyzer API")
@@ -15,4 +16,5 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(users.router)
 app.include_router(telecom.router)
