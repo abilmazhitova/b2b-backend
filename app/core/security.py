@@ -1,16 +1,20 @@
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# --- Пароли ---
+# --- Пароли (bcrypt напрямую — без passlib из-за несовместимости с bcrypt 4.1+) ---
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    # bcrypt ограничивает пароль 72 байтами
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    pwd_bytes = plain_password.encode("utf-8")[:72]
+    return bcrypt.checkpw(pwd_bytes, hashed_password.encode("utf-8"))
+
 
 # --- JWT токены ---
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -21,3 +25,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
+
+def decode_token(token: str) -> dict | None:
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except Exception:
+        return None

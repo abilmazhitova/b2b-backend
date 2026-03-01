@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 # ---------- TelecomGrid ----------
@@ -17,10 +17,8 @@ class TelecomGridCreate(TelecomGridBase):
 
 
 class TelecomGridRead(TelecomGridBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-
-    class Config:
-        orm_mode = True
 
 
 # ---------- TelecomStat ----------
@@ -36,7 +34,5 @@ class TelecomStatCreate(TelecomStatBase):
 
 
 class TelecomStatRead(TelecomStatBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-
-    class Config:
-        orm_mode = True

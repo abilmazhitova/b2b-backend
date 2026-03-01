@@ -7,16 +7,18 @@ from alembic import context
 import sys
 from os.path import dirname, abspath
 
-from app.database import DATABASE_URL, Base
+from app.config import settings
+from app.database import Base
 from app.models.user import User
 from app.models.telecom import TelecomGrid, TelecomStat
 from app.models.analysis import AnalysisResult
-sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
-config = context.config
 
-config.set_main_option("sqlalchemy.url", f"{DATABASE_URL}?async_fallback=True")
+# Синхронный URL для Alembic (миграции не поддерживают async)
+SYNC_URL = f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+
+sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
+config = context.config
+config.set_main_option("sqlalchemy.url", SYNC_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
