@@ -21,6 +21,11 @@ class TelecomGridRead(TelecomGridBase):
     id: int
 
 
+class GridWithActivity(TelecomGridRead):
+    """Сетка с агрегированной активностью (сумма user_count по статистике)."""
+    activity: float = 0.0
+
+
 # ---------- TelecomStat ----------
 class TelecomStatBase(BaseModel):
     grid_id: int

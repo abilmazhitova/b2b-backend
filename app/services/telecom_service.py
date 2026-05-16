@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, and_
 from app.models.telecom import TelecomGrid, TelecomStat
 from app.schemas.telecom_schema import TelecomGridCreate, TelecomStatCreate
 import pandas as pd
@@ -18,6 +18,33 @@ async def get_grids(session: AsyncSession):
     return result.scalars().all()
 
 
+async def get_grids_with_activity(
+    session: AsyncSession,
+    week_day: int | None = None,
+    time_hour_from: int | None = None,
+    time_hour_to: int | None = None,
+):
+    """Сетки с суммой user_count по статистике. Фильтр по дню/часу — в join, чтобы все сетки оставались в выборке."""
+    join_conds = [TelecomGrid.id == TelecomStat.grid_id]
+    if week_day is not None:
+        join_conds.append(TelecomStat.week_day == week_day)
+    if time_hour_from is not None:
+        join_conds.append(TelecomStat.time_hour >= time_hour_from)
+    if time_hour_to is not None:
+        join_conds.append(TelecomStat.time_hour <= time_hour_to)
+
+    q = (
+        select(
+            TelecomGrid,
+            func.coalesce(func.sum(TelecomStat.user_count), 0).label("activity"),
+        )
+        .outerjoin(TelecomStat, and_(*join_conds))
+        .group_by(TelecomGrid.id)
+    )
+    result = await session.execute(q)
+    return result.all()
+
+
 # ---------- TELECOM STAT ----------
 async def create_stat(session: AsyncSession, data: TelecomStatCreate) -> TelecomStat:
     stat = TelecomStat(**data.dict())
@@ -32,6 +59,17 @@ async def get_stats_by_grid(session: AsyncSession, grid_id: int):
         select(TelecomStat).where(TelecomStat.grid_id == grid_id)
     )
     return result.scalars().all()
+
+
+async def get_activity_by_month(session: AsyncSession):
+    q = (
+        select(TelecomStat.month_label, func.sum(TelecomStat.user_count).label("total"))
+        .where(TelecomStat.month_label.isnot(None))
+        .group_by(TelecomStat.month_label)
+        .order_by(TelecomStat.month_label)
+    )
+    result = await session.execute(q)
+    return result.all()
 
 
 

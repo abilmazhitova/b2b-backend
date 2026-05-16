@@ -31,3 +31,13 @@ class TokenResponse(BaseModel):
 
 class UserUpdateAdmin(BaseModel):
     is_admin: bool
+
+
+class UserUpdateProfile(BaseModel):
+    full_name: str | None = None
+    email: EmailStr | None = None
+
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
